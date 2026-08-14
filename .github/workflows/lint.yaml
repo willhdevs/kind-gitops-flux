@@ -1,0 +1,51 @@
+name: Lint
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  yaml:
+    name: YAML
+    runs-on: ubuntu-26.04
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Show yamllint version
+        run: yamllint --version
+
+      - name: Lint YAML
+        run: yamllint --strict .
+
+  shell:
+    name: Shell
+    runs-on: ubuntu-26.04
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install shfmt
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes shfmt
+
+      - name: Check Bash syntax
+        run: |
+          shopt -s globstar
+          bash -n bootstrap/**/*.sh
+
+      - name: Check shell formatting
+        run: shfmt -d .
+
+      - name: Run ShellCheck
+        run: |
+          shopt -s globstar
+          shellcheck bootstrap/**/*.sh
