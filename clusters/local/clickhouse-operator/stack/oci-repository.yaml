@@ -5,6 +5,9 @@ metadata:
   namespace: clickhouse-operator-system
 spec:
   interval: 1h
+  layerSelector:
+    mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
+    operation: copy
   ref:
     tag: 0.0.7
   url: oci://ghcr.io/clickhouse/clickhouse-operator-helm
