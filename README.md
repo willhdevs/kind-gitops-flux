@@ -91,8 +91,8 @@ without an external receiver.
 The controller manager, scheduler, etcd, and kube-proxy monitors are disabled
 because their metrics endpoints are not reachable from Prometheus in kind.
 Flux metrics and dashboards come from the Flux Operator project's official
-monitoring configuration, pinned to an immutable upstream commit. This
-repository does not maintain custom dashboards or alert rules.
+monitoring configuration, pinned to an immutable upstream commit. Declarative
+NetFlow / IPFIX dashboards are provisioned in `clusters/local/monitoring/dashboards/`.
 
 The chart installs its CRDs using Helm's standard CRD mechanism. Removing the
 Helm release leaves those CRDs installed; deleting a monitoring CRD also deletes
@@ -122,6 +122,10 @@ kubectl --context kind-kind-flux --namespace telemetry \
 
 Grafana Explore datasource: `clickhouse-telemetry`
 
+Pre-provisioned Grafana Dashboards (Folder: `Network`):
+- **Network Traffic Overview & Top Talkers** (`/d/netflow-overview`)
+- **Flow Explorer & Granular Drill-Down** (`/d/flow-explorer`)
+
 Recent records:
 
 ```sql
@@ -136,7 +140,7 @@ Byte volume by minute:
 ```sql
 SELECT
     toStartOfMinute(received_at) AS time,
-    sum(in_total_bytes) AS bytes
+    sum(in_bytes) AS bytes
 FROM flows.raw
 WHERE $__timeFilter(received_at)
 GROUP BY time
@@ -149,7 +153,7 @@ Highest-volume endpoint pairs:
 SELECT
     src,
     dst,
-    sum(in_total_bytes) AS bytes
+    sum(in_bytes) AS bytes
 FROM flows.raw
 WHERE $__timeFilter(received_at)
 GROUP BY src, dst
