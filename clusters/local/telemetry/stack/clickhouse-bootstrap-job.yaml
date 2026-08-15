@@ -46,7 +46,9 @@ spec:
             capabilities:
               drop:
                 - ALL
+            runAsGroup: 101
             runAsNonRoot: true
+            runAsUser: 101
             seccompProfile:
               type: RuntimeDefault
           volumeMounts:
