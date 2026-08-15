@@ -8,3 +8,24 @@ resources:
   - clickhouse-bootstrap-job.yaml
   - telegraf-helm-release.yaml
   - telegraf-service.yaml
+
+configurations:
+  - kustomizeconfig.yaml
+
+# The operator mounts extraUsersConfig updates but classifies them as reloadable,
+# even though ClickHouse does not reload XML user grants. A generated name changes
+# with this manifest and is copied into the ClickHouse pod template below, causing
+# a declarative rollout whenever its user configuration changes.
+configMapGenerator:
+  - name: clickhouse-config-revision
+    files:
+      - clickhouse-clusters.yaml
+
+vars:
+  - name: CLICKHOUSE_CONFIG_REVISION
+    objref:
+      apiVersion: v1
+      kind: ConfigMap
+      name: clickhouse-config-revision
+    fieldref:
+      fieldpath: metadata.name
