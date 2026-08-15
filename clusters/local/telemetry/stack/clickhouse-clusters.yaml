@@ -36,20 +36,11 @@ spec:
     name: clickhouse-keeper
   labels:
     telemetry.willh.dev/component: clickhouse
-  podTemplate:
-    volumes:
-      - configMap:
-          name: clickhouse-bootstrap
-        name: bootstrap
   containerTemplate:
     image:
       repository: clickhouse/clickhouse-server
       tag: 26.3.17.110
     imagePullPolicy: IfNotPresent
-    volumeMounts:
-      - mountPath: /docker-entrypoint-initdb.d
-        name: bootstrap
-        readOnly: true
   dataVolumeClaimSpec:
     accessModes:
       - ReadWriteOnce
