@@ -31,7 +31,7 @@ spec:
           type: grafana-clickhouse-datasource
           uid: clickhouse-telemetry
       plugins:
-        - grafana-clickhouse-datasource 4.20.0
+        - grafana-clickhouse-datasource@4.20.0
       service:
         type: LoadBalancer
     kubeControllerManager:
