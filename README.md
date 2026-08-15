@@ -7,23 +7,17 @@ This repository defines a local Kubernetes environment with
 ## Phase 1: Local cluster bootstrap
 
 Phase 1 creates the `kind-flux` cluster and starts the local cloud provider.
-Flux, workloads, Flux manifests, and `clusters/local` are intentionally out of
-scope for this phase.
 
 ## Prerequisites
 
 - [kind](https://kind.sigs.k8s.io/docs/user/quick-start/)
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
+- [Helm](https://helm.sh/docs/intro/install/)
 - [Docker](https://docs.docker.com/engine/install/) or
   [Podman](https://podman.io/docs/installation)
 - [cloud-provider-kind](https://github.com/kubernetes-sigs/cloud-provider-kind/releases)
 
-Start the container runtime before creating the cluster. Docker and Podman are
-both supported.
-
 ## Create the cluster
-
-From the repository root, run:
 
 ```bash
 ./bootstrap/kind/create.sh
@@ -34,7 +28,7 @@ The script creates the cluster from
 existing cluster, ensures it is running, matching the runtime it was created with.
 A new cluster uses Podman when available, otherwise Docker.
 
-Verify the cluster with:
+Cluster status:
 
 ```bash
 kubectl --context kind-kind-flux get nodes
@@ -42,11 +36,50 @@ kubectl --context kind-kind-flux get nodes
 
 ## Run the local cloud provider
 
-After the cluster is ready, run this in a separate terminal to support service load balancers:
-
 ```bash
 ./bootstrap/kind/run-cloud-provider.sh
 ```
+
+## Phase 2: Flux bootstrap
+
+Phase 2 installs Flux Operator and applies a `FluxInstance`. The instance
+reconciles `clusters/local` from the public `main` branch.
+
+Bootstrap:
+
+```bash
+./bootstrap/flux/bootstrap.sh
+```
+
+The script installs the pinned operator OCI chart, applies the `FluxInstance`,
+waits for Git reconciliation, and checks the smoke ConfigMap. Re-running it
+repairs or recovers the installation.
+
+Status:
+
+```bash
+helm --kube-context kind-kind-flux --namespace flux-system status flux-operator
+kubectl --context kind-kind-flux --namespace flux-system \
+  get fluxinstances,fluxreports
+kubectl --context kind-kind-flux --namespace flux-system \
+  get gitrepositories,kustomizations
+kubectl --context kind-kind-flux --namespace flux-system get deployments
+```
+
+Immediate source and Kustomization reconciliation:
+
+```bash
+requested_at="$(date +%s)"
+kubectl --context kind-kind-flux --namespace flux-system annotate --overwrite \
+  gitrepository/flux-system \
+  "reconcile.fluxcd.io/requestedAt=${requested_at}"
+kubectl --context kind-kind-flux --namespace flux-system annotate --overwrite \
+  kustomization/flux-system \
+  "reconcile.fluxcd.io/requestedAt=${requested_at}"
+```
+
+Flux upgrades are declared in `spec.distribution.version`. Flux Operator
+upgrades use the chart version pinned by the bootstrap script.
 
 ## Development checks
 
