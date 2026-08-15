@@ -1,0 +1,10 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: flux-operator-monitoring
+  namespace: flux-system
+spec:
+  interval: 1h
+  ref:
+    commit: a380bb9f2759b4c5138201631e91f4a435c5b7b0
+  url: https://github.com/controlplaneio-fluxcd/flux-operator.git

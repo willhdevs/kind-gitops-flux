@@ -1,0 +1,20 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: flux-monitoring
+  namespace: flux-system
+spec:
+  commonMetadata:
+    labels:
+      release: monitoring
+  dependsOn:
+    - name: monitoring-stack
+  interval: 1h
+  path: ./config/monitoring
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-operator-monitoring
+  targetNamespace: monitoring
+  timeout: 5m
+  wait: true
