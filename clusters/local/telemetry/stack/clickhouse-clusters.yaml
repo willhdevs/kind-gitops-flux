@@ -32,8 +32,6 @@ spec:
   shards: 1
   replicas: 1
   upgradeChannel: "26.3"
-  annotations:
-    clickhouse-config-revision: $(CLICKHOUSE_CONFIG_REVISION)
   keeperClusterRef:
     name: clickhouse-keeper
   labels:
@@ -54,27 +52,3 @@ spec:
     logger:
       level: information
       logToFile: false
-    extraUsersConfig:
-      users:
-        flows_writer:
-          grants:
-            - query: GRANT CREATE TABLE, ALTER TABLE, INSERT ON flows.*
-            - query: GRANT SELECT ON flows.*
-            - query: GRANT SELECT ON INFORMATION_SCHEMA.COLUMNS
-          networks:
-            ip:
-              - 0.0.0.0/0
-              - ::/0
-          no_password: 1
-          profile: default
-          quota: default
-        grafana_reader:
-          grants:
-            - query: GRANT SELECT ON flows.*
-          networks:
-            ip:
-              - 0.0.0.0/0
-              - ::/0
-          no_password: 1
-          profile: default
-          quota: default

@@ -1,5 +1,5 @@
 varReference:
-  - group: clickhouse.com
-    version: v1alpha1
-    kind: ClickHouseCluster
-    path: spec/annotations/clickhouse-config-revision
+  - group: batch
+    version: v1
+    kind: Job
+    path: spec/template/spec/volumes[]/configMap/name

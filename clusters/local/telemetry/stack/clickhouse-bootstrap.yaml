@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: clickhouse-bootstrap
-  namespace: telemetry
-data:
-  01-flows.sql: |
-    CREATE DATABASE IF NOT EXISTS flows;

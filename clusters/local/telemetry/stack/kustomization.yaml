@@ -2,7 +2,6 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - helm-repository.yaml
-  - clickhouse-bootstrap.yaml
   - clickhouse-clusters.yaml
   - clickhouse-service.yaml
   - clickhouse-bootstrap-job.yaml
@@ -12,20 +11,18 @@ resources:
 configurations:
   - kustomizeconfig.yaml
 
-# The operator mounts extraUsersConfig updates but classifies them as reloadable,
-# even though ClickHouse does not reload XML user grants. A generated name changes
-# with this manifest and is copied into the ClickHouse pod template below, causing
-# a declarative rollout whenever its user configuration changes.
+# A changed SQL file yields a new ConfigMap name, changing the Job pod template.
+# Flux force-recreates that Job, applying the desired Keeper-backed RBAC state.
 configMapGenerator:
-  - name: clickhouse-config-revision
+  - name: clickhouse-bootstrap
     files:
-      - clickhouse-clusters.yaml
+      - 01-flows.sql=clickhouse-bootstrap.sql
 
 vars:
-  - name: CLICKHOUSE_CONFIG_REVISION
+  - name: CLICKHOUSE_BOOTSTRAP_CONFIG
     objref:
       apiVersion: v1
       kind: ConfigMap
-      name: clickhouse-config-revision
+      name: clickhouse-bootstrap
     fieldref:
       fieldpath: metadata.name
