@@ -1,0 +1,5 @@
+varReference:
+  - group: batch
+    version: v1
+    kind: Job
+    path: spec/template/spec/volumes[]/configMap/name

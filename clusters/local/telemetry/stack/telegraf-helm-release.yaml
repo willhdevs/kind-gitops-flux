@@ -60,7 +60,7 @@ spec:
             batch_transactions: true
             data_source_name: clickhouse://flows_writer@clickhouse.telemetry.svc.cluster.local:9000/flows
             driver: clickhouse
-            table_exists_template: SELECT 1 FROM system.tables WHERE database = currentDatabase() AND name = {TABLELITERAL} LIMIT 1
+            table_exists_template: SELECT 1 FROM {TABLE} LIMIT 1
             table_template: CREATE TABLE {TABLE}({COLUMNS}) ENGINE = MergeTree ORDER BY ({TIMESTAMP_COLUMN_NAME}) TTL {TIMESTAMP_COLUMN_NAME} + INTERVAL 30 DAY DELETE
             table_update_template: ALTER TABLE {TABLE} ADD COLUMN {COLUMN}
             timestamp_column: received_at

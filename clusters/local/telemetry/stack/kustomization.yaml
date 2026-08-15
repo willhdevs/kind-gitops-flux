@@ -1,10 +1,29 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+namespace: telemetry
 resources:
   - helm-repository.yaml
-  - clickhouse-bootstrap.yaml
   - clickhouse-clusters.yaml
   - clickhouse-service.yaml
   - clickhouse-bootstrap-job.yaml
   - telegraf-helm-release.yaml
   - telegraf-service.yaml
+
+configurations:
+  - kustomizeconfig.yaml
+
+# A changed SQL file yields a new ConfigMap name, changing the Job pod template.
+# Flux force-recreates that Job, applying the desired Keeper-backed RBAC state.
+configMapGenerator:
+  - name: clickhouse-bootstrap
+    files:
+      - 01-flows.sql=clickhouse-bootstrap.sql
+
+vars:
+  - name: CLICKHOUSE_BOOTSTRAP_CONFIG
+    objref:
+      apiVersion: v1
+      kind: ConfigMap
+      name: clickhouse-bootstrap
+    fieldref:
+      fieldpath: metadata.name

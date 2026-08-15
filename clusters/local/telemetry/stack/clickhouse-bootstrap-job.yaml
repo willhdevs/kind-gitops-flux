@@ -3,6 +3,8 @@ kind: Job
 metadata:
   name: clickhouse-bootstrap
   namespace: telemetry
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: enabled
 spec:
   activeDeadlineSeconds: 600
   backoffLimit: 6
@@ -20,6 +22,22 @@ spec:
                 --port 9000 \
                 --user default \
                 --query "SELECT 1"; do
+                sleep 5
+              done
+
+              # The application accounts are SQL-managed access entities stored
+              # in ClickHouse Keeper. Reload first so removed users_xml accounts
+              # cannot conflict with the Keeper-backed accounts created below.
+              until [ "$(clickhouse-client \
+                --host clickhouse.telemetry.svc.cluster.local \
+                --port 9000 \
+                --user default \
+                --query \"SELECT count() FROM system.users WHERE name IN ('flows_writer', 'grafana_reader') AND storage = 'users_xml'\")" = "0" ]; do
+                clickhouse-client \
+                  --host clickhouse.telemetry.svc.cluster.local \
+                  --port 9000 \
+                  --user default \
+                  --query "SYSTEM RELOAD USERS"
                 sleep 5
               done
 
@@ -58,5 +76,5 @@ spec:
       restartPolicy: OnFailure
       volumes:
         - configMap:
-            name: clickhouse-bootstrap
+            name: $(CLICKHOUSE_BOOTSTRAP_CONFIG)
           name: bootstrap
