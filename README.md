@@ -81,6 +81,23 @@ kubectl --context kind-kind-flux --namespace flux-system annotate --overwrite \
 Flux upgrades are declared in `spec.distribution.version`. Flux Operator
 upgrades use the chart version pinned by the bootstrap script.
 
+## Monitoring
+
+Flux reconciles the standard `kube-prometheus-stack` in the `monitoring`
+namespace. Prometheus uses persistent storage, Grafana is exposed through
+cloud-provider-kind, and Alertmanager retains its default local configuration
+without an external receiver.
+
+The controller manager, scheduler, etcd, and kube-proxy monitors are disabled
+because their metrics endpoints are not reachable from Prometheus in kind.
+Flux metrics and dashboards come from the Flux Operator project's official
+monitoring configuration, pinned to an immutable upstream commit. This
+repository does not maintain custom dashboards or alert rules.
+
+The chart installs its CRDs using Helm's standard CRD mechanism. Removing the
+Helm release leaves those CRDs installed; deleting a monitoring CRD also deletes
+every custom resource stored under that API.
+
 ## Development checks
 
 ```bash

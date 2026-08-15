@@ -57,6 +57,7 @@ install_operator() {
     --namespace "${FLUX_NAMESPACE}" \
     --create-namespace \
     --kube-context "${CLUSTER_CONTEXT}" \
+    --set reporting.interval=30s \
     --wait \
     --timeout "${READY_TIMEOUT}"
 
