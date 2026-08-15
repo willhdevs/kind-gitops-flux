@@ -64,6 +64,7 @@ spec:
         flows_writer:
           grants:
             - query: GRANT CREATE TABLE, ALTER TABLE, INSERT ON flows.*
+            - query: GRANT SELECT ON INFORMATION_SCHEMA.COLUMNS
           networks:
             ip:
               - 0.0.0.0/0
