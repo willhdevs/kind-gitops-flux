@@ -5,3 +5,4 @@ resources:
   - stack-kustomization.yaml
   - flux-monitoring-source.yaml
   - flux-monitoring-kustomization.yaml
+  - dashboards
