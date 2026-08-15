@@ -1,0 +1,16 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: clickhouse-operator
+  namespace: clickhouse-operator-system
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: clickhouse-operator
+  interval: 30m
+  releaseName: clickhouse-operator
+  timeout: 10m
+  values:
+    controller:
+      watchNamespaces:
+        - telemetry

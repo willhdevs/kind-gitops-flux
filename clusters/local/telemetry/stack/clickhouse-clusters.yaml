@@ -1,0 +1,85 @@
+apiVersion: clickhouse.com/v1alpha1
+kind: KeeperCluster
+metadata:
+  name: clickhouse-keeper
+  namespace: telemetry
+spec:
+  replicas: 1
+  upgradeChannel: "26.3"
+  containerTemplate:
+    image:
+      repository: clickhouse/clickhouse-keeper
+      tag: 26.3.17.110
+    imagePullPolicy: IfNotPresent
+  dataVolumeClaimSpec:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+    storageClassName: standard
+  settings:
+    logger:
+      level: information
+      logToFile: false
+---
+apiVersion: clickhouse.com/v1alpha1
+kind: ClickHouseCluster
+metadata:
+  name: clickhouse
+  namespace: telemetry
+spec:
+  shards: 1
+  replicas: 1
+  upgradeChannel: "26.3"
+  keeperClusterRef:
+    name: clickhouse-keeper
+  labels:
+    telemetry.willh.dev/component: clickhouse
+  podTemplate:
+    volumes:
+      - configMap:
+          name: clickhouse-bootstrap
+        name: bootstrap
+  containerTemplate:
+    image:
+      repository: clickhouse/clickhouse-server
+      tag: 26.3.17.110
+    imagePullPolicy: IfNotPresent
+    volumeMounts:
+      - mountPath: /docker-entrypoint-initdb.d
+        name: bootstrap
+        readOnly: true
+  dataVolumeClaimSpec:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 20Gi
+    storageClassName: standard
+  settings:
+    logger:
+      level: information
+      logToFile: false
+    extraUsersConfig:
+      users:
+        flows_writer:
+          grants:
+            - query: GRANT CREATE TABLE, ALTER TABLE, INSERT ON flows.*
+          networks:
+            ip:
+              - 0.0.0.0/0
+              - ::/0
+          no_password: 1
+          profile: default
+          quota: default
+        grafana_reader:
+          grants:
+            - query: GRANT SELECT ON flows.*
+          networks:
+            ip:
+              - 0.0.0.0/0
+              - ::/0
+          no_password: 1
+          profile: default
+          quota: default

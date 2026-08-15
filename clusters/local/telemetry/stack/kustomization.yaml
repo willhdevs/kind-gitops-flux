@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - helm-repository.yaml
+  - clickhouse-bootstrap.yaml
+  - clickhouse-clusters.yaml
+  - clickhouse-service.yaml
+  - telegraf-helm-release.yaml
+  - telegraf-service.yaml
