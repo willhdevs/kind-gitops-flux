@@ -1,0 +1,10 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: clickhouse-operator
+  namespace: clickhouse-operator-system
+spec:
+  interval: 1h
+  ref:
+    tag: 0.0.7
+  url: oci://ghcr.io/clickhouse/clickhouse-operator-helm

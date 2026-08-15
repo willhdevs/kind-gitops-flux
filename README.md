@@ -98,6 +98,65 @@ The chart installs its CRDs using Helm's standard CRD mechanism. Removing the
 Helm release leaves those CRDs installed; deleting a monitoring CRD also deletes
 every custom resource stored under that API.
 
+## Flow telemetry
+
+Status:
+
+```bash
+kubectl --context kind-kind-flux --namespace telemetry \
+  get service telegraf-ipfix
+kubectl --context kind-kind-flux --namespace telemetry \
+  get keeperclusters,clickhouseclusters,pods,services,persistentvolumeclaims
+```
+
+ClickHouse shell:
+
+```bash
+clickhouse_pod="$(kubectl --context kind-kind-flux --namespace telemetry \
+  get pods --selector telemetry.willh.dev/component=clickhouse \
+  --output jsonpath='{.items[0].metadata.name}')"
+kubectl --context kind-kind-flux --namespace telemetry \
+  exec --stdin --tty "${clickhouse_pod}" -- \
+  clickhouse-client --user grafana_reader --database flows
+```
+
+Grafana Explore datasource: `clickhouse-telemetry`
+
+Recent records:
+
+```sql
+SELECT *
+FROM flows.raw
+ORDER BY received_at DESC
+LIMIT 100
+```
+
+Byte volume by minute:
+
+```sql
+SELECT
+    toStartOfMinute(received_at) AS time,
+    sum(in_total_bytes) AS bytes
+FROM flows.raw
+WHERE $__timeFilter(received_at)
+GROUP BY time
+ORDER BY time
+```
+
+Highest-volume endpoint pairs:
+
+```sql
+SELECT
+    src,
+    dst,
+    sum(in_total_bytes) AS bytes
+FROM flows.raw
+WHERE $__timeFilter(received_at)
+GROUP BY src, dst
+ORDER BY bytes DESC
+LIMIT 20
+```
+
 ## Development checks
 
 ```bash

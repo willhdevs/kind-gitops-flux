@@ -17,6 +17,21 @@ spec:
   timeout: 10m
   values:
     grafana:
+      additionalDataSources:
+        - access: proxy
+          editable: false
+          jsonData:
+            configMode: classic
+            defaultDatabase: flows
+            host: clickhouse.telemetry.svc.cluster.local
+            port: 9000
+            protocol: native
+            username: grafana_reader
+          name: ClickHouse Telemetry
+          type: grafana-clickhouse-datasource
+          uid: clickhouse-telemetry
+      plugins:
+        - grafana-clickhouse-datasource 4.20.0
       service:
         type: LoadBalancer
     kubeControllerManager:

@@ -1,0 +1,71 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: telegraf
+  namespace: telemetry
+spec:
+  chart:
+    spec:
+      chart: telegraf
+      interval: 1h
+      sourceRef:
+        kind: HelmRepository
+        name: influxdata
+      version: 1.8.73
+  interval: 30m
+  releaseName: telegraf
+  timeout: 10m
+  values:
+    containerPorts:
+      - containerPort: 2055
+        name: ipfix
+        protocol: UDP
+    image:
+      pullPolicy: IfNotPresent
+      repo: docker.io/library/telegraf
+      tag: 1.39.3-alpine
+    metrics:
+      health:
+        enabled: false
+      internal:
+        enabled: false
+    pdb:
+      create: false
+    rbac:
+      create: false
+    service:
+      enabled: false
+    serviceAccount:
+      create: false
+    tplVersion: 2
+    config:
+      agent:
+        collection_jitter: 0s
+        debug: false
+        flush_interval: 10s
+        flush_jitter: 0s
+        hostname: $HOSTNAME
+        interval: 10s
+        logfile: ""
+        metric_batch_size: 1000
+        metric_buffer_limit: 10000
+        omit_hostname: true
+        precision: ""
+        quiet: false
+        round_interval: true
+      aggregators: []
+      processors: []
+      outputs:
+        - sql:
+            batch_transactions: true
+            data_source_name: clickhouse://flows_writer@clickhouse.telemetry.svc.cluster.local:9000/flows
+            driver: clickhouse
+            table_exists_template: SELECT 1 FROM system.tables WHERE database = currentDatabase() AND name = {TABLELITERAL} LIMIT 1
+            table_template: CREATE TABLE {TABLE}({COLUMNS}) ENGINE = MergeTree ORDER BY ({TIMESTAMP_COLUMN_NAME}) TTL {TIMESTAMP_COLUMN_NAME} + INTERVAL 30 DAY DELETE
+            table_update_template: ALTER TABLE {TABLE} ADD COLUMN {COLUMN}
+            timestamp_column: received_at
+      inputs:
+        - netflow:
+            name_override: raw
+            protocol: ipfix
+            service_address: udp://:2055
