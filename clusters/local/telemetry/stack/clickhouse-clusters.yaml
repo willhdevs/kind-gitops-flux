@@ -56,6 +56,9 @@ spec:
         storage: 20Gi
     storageClassName: standard
   settings:
+    extraConfig:
+      backups:
+        allowed_path: /var/lib/clickhouse/backups/
     logger:
       level: information
       logToFile: false
