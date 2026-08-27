@@ -161,6 +161,43 @@ ORDER BY bytes DESC
 LIMIT 20
 ```
 
+## ClickHouse backup and restore
+
+Create a native backup of the `flows` database at an operator-chosen local
+path. The output file must not already exist:
+
+```bash
+./scripts/clickhouse-backup.sh ./flows-backup.zip
+```
+
+Restore the archive into the cluster selected by the active Kubernetes
+context:
+
+```bash
+./scripts/clickhouse-restore.sh ./flows-backup.zip
+```
+
+Use `--context` to operate on a different Kubernetes context:
+
+```bash
+./scripts/clickhouse-backup.sh \
+  --context kind-kind-flux ./flows-backup.zip
+./scripts/clickhouse-restore.sh \
+  --context kind-kind-flux ./flows-backup.zip
+```
+
+Restore accepts an absent or empty `flows` database. It refuses to replace a
+database containing rows unless `--replace` is specified:
+
+```bash
+./scripts/clickhouse-restore.sh \
+  --context kind-kind-flux --replace ./flows-backup.zip
+```
+
+The utilities do not stop Telegraf or suspend Flux. Ensure no telemetry is
+being ingested while restoring. The archive contains only the `flows` database;
+users and grants remain managed by the declarative ClickHouse bootstrap.
+
 ## Development checks
 
 ```bash
